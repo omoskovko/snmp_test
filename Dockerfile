@@ -35,5 +35,7 @@ ENV PATH="/usr/bin:$PATH"
 
 RUN mkdir -p snmp_test
 WORKDIR /home/usnmp/snmp_test
-RUN umask 0002
 COPY . .
+USER root
+RUN chmod 755 /home/usnmp/snmp_test/run_test.sh
+USER usnmp

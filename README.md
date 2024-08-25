@@ -1,3 +1,5 @@
+[![Docker Image CI](https://github.com/omoskovko/snmp_test/actions/workflows/docker-image.yml/badge.svg)](https://github.com/omoskovko/snmp_test/actions/workflows/docker-image.yml)
+
 # SNMP Test Project
 
 This project contains tests for SNMP (Simple Network Management Protocol) using Python and pytest.
@@ -32,7 +34,7 @@ This project contains tests for SNMP (Simple Network Management Protocol) using 
 
 To run the SNMP tests, use the following command:
 ```sh
-docker exec -it my-snmp-container /home/usnmp/snmp_test/run_test.sh
+docker exec my-snmp-container /home/usnmp/snmp_test/run_test.sh
 ```
 
 ## Tests
@@ -40,14 +42,31 @@ The tests are written using pytest and are located in the test_snmp.py file. The
 
 ## Example Test
 ```
-# Get the expected value from uname output
-expected_value = await expected_value_func()
-oid_value = await get_snmp_value(community_string, ip_address, snmp_port, oid)
-print(f"OID {oid} value: {oid_value}")  # Print the value for visibility
+@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.parametrize("community_string, ip_address, snmp_port, oid, expected_value_func", [
+    pytest.param(
+        "private",
+        "127.0.0.1",
+        1161,
+        "1.3.6.1.2.1.1.1.0", 
+        get_uname_output, 
+        id="sysDescr"
+    ),
+])
+async def test_snmp_oid_value(snmpd_server, community_string, 
+                              ip_address, snmp_port, oid, expected_value_func):
+    """
+    Tests the value of a specific SNMP OID without using MIB names.
+    """
+    # Get the expected value from uname output
+    expected_value = await expected_value_func()
+    oid_value = await get_snmp_value(community_string, ip_address, snmp_port, oid)
+    print(f"OID {oid} value: {oid_value}")  # Print the value for visibility
 
-# Assert the expected value
-print(f"Expected value: {expected_value}")
-assert oid_value == expected_value, f"OID {oid} value does not match the expected value: {expected_value}"
+    # Assert the expected value (replace with your actual expectation)
+    # expected_value = "Linux 3d6c71da4ed1 5.15.153.1-microsoft-standard-WSL2 #1 SMP Fri Mar 29 23:14:13 UTC 2024 x86_64"  # Example: expecting "Linux" for sysDescr
+    print(f"Expected value: {expected_value}")
+    assert oid_value == expected_value, f"OID {oid} value does not match the expected value: {expected_value}"
 ```
 
 ## Contributing
